@@ -16,9 +16,13 @@ import javax.mail.internet.MimeMessage;
 
 public class DbPing
 {
-
     public static void main( final String[] args )
     {
+        final String jdbcUrl = getEnv( "DB_PING_JDBC_URL" );
+        final String gmailAddr = getEnv( "DB_PING_GMAIL_ADDR" );
+        final String gmailPassword = getEnv( "DB_PING_GMAIL_PASSOWRD" );
+        final String to = getEnv( "DB_PING_TO" );
+
         final File lockFile = new File( "/tmp/DB_PING.lock" );
         if ( lockFile.exists() )
         {
@@ -28,7 +32,7 @@ public class DbPing
 
         try
         {
-            pingDb( System.getenv( "DB_PING_JDBC_URL" ) );
+            pingDb( jdbcUrl );
         }
         catch ( final SQLException e )
         {
@@ -37,12 +41,12 @@ public class DbPing
             {
                 lockFile.createNewFile();
             }
-            catch ( final Exception ignore ){}
+            catch ( final Exception ignore )
+            {
+            }
             try
             {
-                send( System.getenv( "DB_PING_GMAIL_ADDR" ),
-                    System.getenv( "DB_PING_GMAIL_PASSOWRD" ), System.getenv( "DB_PING_TO" ),
-                    "DB PING FAILED", e.getMessage() );
+                send( gmailAddr, gmailPassword, to, "DB PING FAILED", e.getMessage() );
             }
             catch ( final MessagingException ex )
             {
@@ -50,6 +54,17 @@ public class DbPing
             }
         }
 
+    }
+
+    private static String getEnv( final String key )
+    {
+        final String env = System.getenv( key );
+        if ( env == null )
+        {
+            throw new RuntimeException( "Environment variable '" + key + "' is not set." );
+        }
+
+        return env;
     }
 
     private static void pingDb( final String jdbcUrl ) throws SQLException
