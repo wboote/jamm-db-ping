@@ -94,7 +94,11 @@ public class DbPing
         } );
         // compose message
         final MimeMessage message = new MimeMessage( session );
-        message.addRecipient( Message.RecipientType.TO, new InternetAddress( to ) );
+        final String[] tos = to.split( "," );
+        for ( final String toAddr : tos )
+        {
+            message.addRecipient( Message.RecipientType.TO, new InternetAddress( toAddr ) );
+        }
         message.setSubject( sub );
         message.setText( msg );
         // send message
